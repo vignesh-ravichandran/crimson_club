@@ -1,6 +1,8 @@
 # Crimson Club — Environment and config
 
-**Reference only.** List of environment variables and config the app expects. No secret values in this doc; store secrets in env or secret manager per environment. See [services-and-accounts.md](services-and-accounts.md) (when added) for where each env is set (e.g. Cloudflare dashboard, `.dev.vars`).
+**Reference only.** List of environment variables and config the app expects. No secret values in this doc; store secrets in env or secret manager per environment.
+
+**Where to get production secret values:** Check the email with subject **“Crimson club env”** (in your inbox) for production env values. Set them in Cloudflare (Workers & Pages → **app** → Settings → Variables and Secrets) or via `npx wrangler secret put <NAME>`. See [deploy-steps-free-tier.md](deploy-steps-free-tier.md) for deploy and logs commands.
 
 ---
 
@@ -44,4 +46,4 @@ Add rows here when we introduce new config (e.g. feature flags, third-party API 
 
 ---
 
-_Last updated: 2025-03-14_
+_Last updated: 2025-03-15_

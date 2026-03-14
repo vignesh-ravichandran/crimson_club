@@ -3,7 +3,7 @@
  * POST /api/journeys/[id]/lessons — create lesson. sourceType: daily_reflection | weekly_review. Contract: api-contracts §4.6.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb, type Db } from "@/lib/db";
 import {
   journeyParticipants,
   lessons,
@@ -23,6 +23,7 @@ function jsonError(error: string, code?: string, status = 400) {
 }
 
 async function ensureParticipant(
+  db: Db,
   journeyId: string,
   userId: string
 ): Promise<boolean> {
@@ -71,8 +72,9 @@ export async function GET(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,
@@ -120,8 +122,9 @@ export async function POST(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,

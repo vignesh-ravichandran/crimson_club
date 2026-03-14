@@ -3,7 +3,7 @@
  * DELETE /api/journeys/[id] — creator only; 204 or 403/404.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   journeys,
   journeyParticipants,
@@ -31,6 +31,7 @@ export async function GET(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   const participantRows = await db
     .select()
@@ -136,6 +137,7 @@ export async function DELETE(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   const journeyRows = await db
     .select({ creatorId: journeys.creatorId })

@@ -2,7 +2,7 @@
  * PATCH /api/users/me/primary-journey — set primary journey. Contract: api-contracts §4.1.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { users, journeyParticipants } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { requireSession } from "@/lib/auth/require-session";
@@ -32,6 +32,7 @@ export async function PATCH(request: NextRequest) {
   const session = await requireSession();
   if ("response" in session) return session.response;
   const { user } = session;
+  const db = getDb();
 
   let body: { journeyId?: string };
   try {

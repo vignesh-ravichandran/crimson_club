@@ -3,7 +3,7 @@
  * POST /api/journeys/[id]/goals — create goal. User must be participant. Contract: api-contracts §4.4.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb, type Db } from "@/lib/db";
 import {
   journeyParticipants,
   goals,
@@ -22,6 +22,7 @@ function jsonError(error: string, code?: string, status = 400) {
 }
 
 async function ensureParticipant(
+  db: Db,
   journeyId: string,
   userId: string
 ): Promise<boolean> {
@@ -74,6 +75,7 @@ export async function GET(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
   const goalType = request.nextUrl.searchParams.get("goalType");
   const periodStart = request.nextUrl.searchParams.get("periodStart");
   if (
@@ -89,7 +91,7 @@ export async function GET(
     );
   }
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,
@@ -123,8 +125,9 @@ export async function POST(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,

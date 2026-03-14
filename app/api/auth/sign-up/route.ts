@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -40,6 +40,7 @@ function userToResponse(u: {
 }
 
 export async function POST(request: NextRequest) {
+  const db = getDb();
   let body: unknown;
   try {
     body = await request.json();

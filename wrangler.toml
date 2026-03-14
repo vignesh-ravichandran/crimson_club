@@ -1,14 +1,20 @@
-# Crimson Club — Wrangler config. D1 for local and production. See docs/deployment/env-and-config.md.
-name = "crimson-club"
+# Crimson Club — Wrangler config. OpenNext build output + D1. See docs/deployment/env-and-config.md.
+# Worker name sets the first part of *.workers.dev URL: https://<name>.<your-subdomain>.workers.dev
+name = "app"
+main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
 # D1 database: binding name DB. Create with: wrangler d1 create crimson-club
-# Then set database_id below (and in Cloudflare dashboard for production).
+# Then set database_id below and run: wrangler d1 migrations apply crimson-club --remote
 [[d1_databases]]
 binding = "DB"
 database_name = "crimson-club"
-database_id = "placeholder-replace-with-real-id"
+database_id = "5a54b08b-35a0-4718-af4b-a91b35c62038"
 migrations_dir = "drizzle"
 
 # Local dev secrets: use .dev.vars (gitignored) for SESSION_SECRET etc.

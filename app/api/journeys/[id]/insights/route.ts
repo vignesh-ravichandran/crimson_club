@@ -2,7 +2,7 @@
  * GET /api/journeys/[id]/insights — chart data for Insights: daily scores (14d), dimension averages (radar), heatmap (84d).
  */
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   journeyParticipants,
   dailyEntries,
@@ -24,6 +24,7 @@ export async function GET(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   const participantRows = await db
     .select()

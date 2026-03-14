@@ -3,7 +3,7 @@
  * POST /api/journeys — create journey (dimensions, labels). Contract: api-contracts §4.2.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   journeys,
   journeyParticipants,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   const session = await requireSession();
   if ("response" in session) return session.response;
   const { user } = session;
-
+  const db = getDb();
   const archived = request.nextUrl.searchParams.get("archived") === "true";
 
   const participants = await db
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   const session = await requireSession();
   if ("response" in session) return session.response;
   const { user } = session;
-
+  const db = getDb();
   let body: unknown;
   try {
     body = await request.json();

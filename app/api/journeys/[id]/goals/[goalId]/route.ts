@@ -2,7 +2,7 @@
  * PATCH /api/journeys/[id]/goals/[goalId] — set outcome (0–5). 7-day edit window after periodEnd (user TZ). Contract: api-contracts §4.4.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb, type Db } from "@/lib/db";
 import { journeyParticipants, goals } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth/require-session";
@@ -14,6 +14,7 @@ function jsonError(error: string, code?: string, status = 400) {
 }
 
 async function ensureParticipant(
+  db: Db,
   journeyId: string,
   userId: string
 ): Promise<boolean> {
@@ -66,8 +67,9 @@ export async function PATCH(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId, goalId } = await params;
+  const db = getDb();
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,

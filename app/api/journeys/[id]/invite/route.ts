@@ -2,7 +2,7 @@
  * POST /api/journeys/[id]/invite — create invite for private journey (creator only). Contract: api-contracts §4.2.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { journeys, journeyInvites } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth/require-session";
@@ -25,6 +25,7 @@ export async function POST(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   let body: unknown;
   try {

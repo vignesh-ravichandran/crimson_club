@@ -2,7 +2,7 @@
  * POST /api/journeys/[id]/leave — set left_at for current user. 200.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { journeyParticipants } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireSession } from "@/lib/auth/require-session";
@@ -16,6 +16,7 @@ export async function POST(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   const rows = await db
     .select()

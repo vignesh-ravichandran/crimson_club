@@ -2,7 +2,7 @@
  * POST /api/journeys/[id]/join — Public: add participant. Private: require inviteToken, mark used, add participant.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   journeys,
   journeyParticipants,
@@ -21,6 +21,7 @@ export async function POST(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   let body: { inviteToken?: string } = {};
   try {

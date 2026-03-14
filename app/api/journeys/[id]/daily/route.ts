@@ -3,7 +3,7 @@
  * PUT /api/journeys/[id]/daily — upsert entry; 7-day window (user TZ). Contract: api-contracts §4.3.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb, type Db } from "@/lib/db";
 import {
   journeyParticipants,
   dailyEntries,
@@ -26,6 +26,7 @@ function jsonError(error: string, code?: string, status = 400) {
 }
 
 async function ensureParticipant(
+  db: Db,
   journeyId: string,
   userId: string
 ): Promise<boolean> {
@@ -48,6 +49,7 @@ export async function GET(
 ) {
   const session = await requireSession();
   if ("response" in session) return session.response;
+  const db = getDb();
   const { user } = session;
   const { id: journeyId } = await params;
   const date = request.nextUrl.searchParams.get("date");
@@ -55,7 +57,7 @@ export async function GET(
     return jsonError("Query date=YYYY-MM-DD required", "VALIDATION", 400);
   }
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,
@@ -116,8 +118,9 @@ export async function PUT(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,

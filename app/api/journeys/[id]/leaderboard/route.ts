@@ -3,7 +3,7 @@
  * Ranked list by normalized score %; only participants with ≥1 entry in period. Contract: api-contracts §4.7.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   journeys,
   journeyParticipants,
@@ -38,6 +38,7 @@ export async function GET(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
   const period = request.nextUrl.searchParams.get("period");
   const periodStart = request.nextUrl.searchParams.get("periodStart");

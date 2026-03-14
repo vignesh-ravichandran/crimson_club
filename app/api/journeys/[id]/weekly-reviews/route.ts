@@ -3,7 +3,7 @@
  * PUT /api/journeys/[id]/weekly-reviews — upsert. Body: { weekStart, done, notes? }. Contract: api-contracts §4.5.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb, type Db } from "@/lib/db";
 import {
   journeyParticipants,
   weeklyReviews,
@@ -22,6 +22,7 @@ function jsonError(error: string, code?: string, status = 400) {
 }
 
 async function ensureParticipant(
+  db: Db,
   journeyId: string,
   userId: string
 ): Promise<boolean> {
@@ -68,12 +69,13 @@ export async function GET(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
   const weekStart = request.nextUrl.searchParams.get("weekStart");
   if (!weekStart || !/^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
     return jsonError("Query weekStart=YYYY-MM-DD required", "VALIDATION", 400);
   }
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,
@@ -106,8 +108,9 @@ export async function PUT(
   if ("response" in session) return session.response;
   const { user } = session;
   const { id: journeyId } = await params;
+  const db = getDb();
 
-  const isParticipant = await ensureParticipant(journeyId, user.id);
+  const isParticipant = await ensureParticipant(db, journeyId, user.id);
   if (!isParticipant) {
     return NextResponse.json(
       { error: "Journey not found" } as ApiError,

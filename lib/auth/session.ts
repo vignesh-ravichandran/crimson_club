@@ -3,7 +3,7 @@
  * Cookie name: crimson_session. Opaque token in cookie; server stores hash in sessions.
  */
 import { cookies } from "next/headers";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
 import { eq, and, gt } from "drizzle-orm";
 import type { User } from "@/lib/db/schema";
@@ -59,6 +59,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   const tokenHash = hashToken(token);
   const now = new Date();
+  const db = getDb();
 
   const rows = await db
     .select()
@@ -90,6 +91,7 @@ export async function createSession(userId: string): Promise<string> {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + MAX_AGE_SECONDS * 1000);
   const id = crypto.randomUUID();
+  const db = getDb();
 
   await db.insert(sessions).values({
     id,
@@ -108,6 +110,7 @@ export async function destroySession(): Promise<void> {
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (token) {
     const tokenHash = hashToken(token);
+    const db = getDb();
     await db.delete(sessions).where(eq(sessions.tokenHash, tokenHash));
   }
 }

@@ -2,7 +2,7 @@
  * GET /api/home — aggregated payload for Home screen. Requires session. Contract: api-contracts §4.8.
  */
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   journeys,
   journeyParticipants,
@@ -32,6 +32,7 @@ export async function GET() {
   const session = await requireSession();
   if ("response" in session) return session.response;
   const { user } = session;
+  const db = getDb();
 
   const tz = user.timezone;
   const today = todayInTimezone(tz);

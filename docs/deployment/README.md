@@ -16,3 +16,4 @@ Not for CI/CD implementation or pipeline code — that lives in the repo. This i
 - `services-and-accounts.md` — Services used for deployment and accounts; per env: which account, which project/app (no secrets)
 - `env-and-config.md` — **Environment variables and config** the app expects (D1 binding, session secret, etc.; no secret values). Use before first deploy and for local setup.
 - `env-updates.md` — What to update per env (config keys, flags, etc.; no secret values)
+- **`deploy-steps-free-tier.md`** — **Step-by-step deploy to Cloudflare (free tier):** D1, OpenNext, Wrangler, secrets, migrations, and required code changes for D1. Includes **quick reference** (live URL, subdomain, `npm run deploy`, `npm run logs`, versions) and **where to get production env values** (email “Crimson club env”).
