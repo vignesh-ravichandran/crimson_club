@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build and output
+.next/
+out/
+dist/
+build/
+.turbo/
+
+# Environment and secrets (never commit)
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Cloudflare / Wrangler
+.wrangler/
+
+# Input folder: ignore all contents; keep only README so folder is documented
+input/*
+!input/README.md
+
+# Logs and OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE (optional; uncomment if you want to ignore)
+# .idea/
+# .vscode/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
+*.tsbuildinfo
+.cache/
