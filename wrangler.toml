@@ -1,0 +1,16 @@
+# Crimson Club — Wrangler config. D1 for local and production. See docs/deployment/env-and-config.md.
+name = "crimson-club"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 database: binding name DB. Create with: wrangler d1 create crimson-club
+# Then set database_id below (and in Cloudflare dashboard for production).
+[[d1_databases]]
+binding = "DB"
+database_name = "crimson-club"
+database_id = "placeholder-replace-with-real-id"
+migrations_dir = "drizzle"
+
+# Local dev secrets: use .dev.vars (gitignored) for SESSION_SECRET etc.
+# [vars]
+# SESSION_SECRET = "set-in-dev-vars"

@@ -7,18 +7,21 @@ Cursor and other tools should read this first. Do not use old or completed plans
 
 ## Active plan
 
-- **Plan:** Repo structure — docs, plans, contributing
-- **File:** `plans/2025-03-14-chore-docs-and-plans-structure.md`
+- **Plan:** App to completion (with manual testing)
+- **File:** `plans/2025-03-14-feature-app-to-completion.md`
 - **Status:** In progress
 - **Last updated:** 2025-03-14
 
 ## What we're doing
 
-Setting up the monorepo structure:
+Taking the app from docs + code structure to a working product:
 
-- `docs/` — product, design, user journey, DB, deployment (indexed)
-- `plans/` — work plans, CURRENT, INDEX (this file + INDEX.md)
-- `CONTRIBUTING.md` — how to use repo, when to update docs/plans, coding styles
+1. **Phase 1 (next):** Foundation + Auth — use brief `plans/parallel/00-foundation-auth.md`. Sequential; do first.
+2. **Phases 2–4:** Backend (journeys/daily, then goals/weekly/lessons and leaderboard/home/invites in parallel) — briefs 01–03.
+3. **Phases 5–8:** Frontend (auth + shell, then home/journeys/today, then goals/weekly/create journey and review/lessons/insights/profile/invites in parallel) — briefs 04–07.
+4. **Phase 9:** Integration and E2E; fix bugs; manual test full flows.
+
+Each parallel brief in `plans/parallel/` is self-contained with **Objective**, **Prerequisites**, **Docs to refer to**, **Scope**, **Acceptance criteria**, and **Manual test steps** so it can be handed to a parallel agent.
 
 ---
 

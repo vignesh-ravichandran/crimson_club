@@ -19,6 +19,7 @@ Single source of truth for languages, frameworks, and tooling. Update this doc w
 | **UI** | React | Component model, hooks |
 | **Language** | TypeScript | Typing across app and backend |
 | **Styling** | Tailwind CSS | Utility-first CSS, design tokens (align with [design/colour-palette.md](../design/colour-palette.md)) |
+| **Charts** | Recharts | React chart library for Insights (line, radar); design tokens (brand.crimson) per colour-palette |
 | **Runtime / edge** | Cloudflare Workers | Serverless/edge execution (API, server logic, or full Next on CF) |
 | **Database** | Cloudflare D1 | SQLite-based serverless DB (backed by SQLite locally) |
 | **Data layer** | Drizzle ORM | Schema, migrations, type-safe queries for D1 |

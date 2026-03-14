@@ -4,6 +4,15 @@ Habit tracker and reviewer (monorepo).
 
 ---
 
+## Local setup (foundation + auth)
+
+1. **Install:** `npm install`
+2. **Secrets:** Copy `.env.example` to `.env.local` and set `SESSION_SECRET` (min 32 characters). For wrangler use `.dev.vars` (gitignored).
+3. **Database (local):** `mkdir -p .data && npm run db:push:local` to create SQLite at `.data/local.sqlite` with `users` and `sessions`. For D1 use `wrangler d1 create crimson-club`, set `database_id` in `wrangler.toml`, then `wrangler d1 migrations apply crimson-club`.
+4. **Run:** `npm run dev` — app at http://localhost:3000. Auth: POST `/api/auth/sign-up`, `/api/auth/sign-in`, `/api/auth/sign-out`; GET `/api/auth/me` (with session cookie).
+
+---
+
 ## Where things live
 
 | What | Where |

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Foundation — docs/design/colour-palette.md */
+  --bg-app: #faf8f5;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f3f0ec;
+  --bg-crimson-subtle: #f8e8eb;
+  --text-primary: #171717;
+  --text-secondary: #5f5a55;
+  --text-tertiary: #8a837c;
+  --text-on-crimson: #ffffff;
+  --border-default: #e7e1da;
+  --border-strong: #d7cfc7;
+  --border-crimson: #c7364f;
+  --brand-crimson: #b4233c;
+  --brand-crimson-active: #c7364f;
+  --brand-crimson-deep: #7a1e2d;
+}
+
+body {
+  @apply bg-app text-primary antialiased;
+}

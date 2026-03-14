@@ -31,7 +31,7 @@ Add rows here when we introduce new config (e.g. feature flags, third-party API 
 
 - **.dev.vars** (in repo root or app root, gitignored): `SESSION_SECRET=...` and any other secrets for `wrangler dev`.
 - **D1:** Local D1 created by `wrangler dev`; no extra env for DB URL. Migrations: `wrangler d1 migrations apply` against local or remote (see [tech-stack](../tech-stack/tech-stack.md)).
-- **Next.js:** If the app reads `process.env.SESSION_SECRET` etc., ensure `.env.local` or `.dev.vars` is loaded in local dev (per Next + wrangler setup).
+- **Next.js:** If the app reads `process.env.SESSION_SECRET` etc., ensure `.env.local` or `.dev.vars` is loaded in local dev (per Next + wrangler setup). For `next dev`, use `.env.local` with `SESSION_SECRET`; local DB is SQLite at `.data/local.sqlite` (create with `npm run db:push:local`). See repo README for first-time setup.
 
 ---
 

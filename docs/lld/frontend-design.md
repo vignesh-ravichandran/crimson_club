@@ -256,7 +256,7 @@ Exact paths may be adjusted (e.g. modals vs routes for weekly review); keep this
 - **Home:** Primary journey hero → Today summary → Other active journeys → Pending/backfill → Archived entry.
 - **Journey — Today view:** Purpose strip → Weekly goal card → Weekly Review card → Monthly goal card → Today's dimensions → Done state → Optional daily reflection. No graphs or leaderboard above the fold ([ux-blueprint §7](../design/ux-blueprint.md)).
 - **Journey — Review view:** Journey foundation → Dimension guidance → Weekly review archive → Daily reflection archive → Lessons.
-- **Journey — Insights view:** Insight chips → Callouts → Charts → Leaderboard last.
+- **Journey — Insights view:** Daily score trend (line chart), weighted contribution stacked bar (last 14 days, by dimension), weighted gap chart (achieved vs gap to 100% per dimension), calendar heatmap for whole journey (last 12 weeks), calendar heatmap per dimension, dimension radar, leaderboard section. Implemented with Recharts and a custom calendar heatmap component; colours from [colour-palette](../design/colour-palette.md) (brand.crimson).
 
 Order protects "action first, analysis later" and busy-day completion.
 

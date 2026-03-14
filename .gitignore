@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Local SQLite (next dev)
+.data/
+
 # Build and output
 .next/
 out/

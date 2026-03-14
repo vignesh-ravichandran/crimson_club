@@ -94,7 +94,13 @@ Base: Next.js API routes under e.g. `/api` (or App Router route handlers). All m
 |--------|------|-------------|---------|----------|
 | GET | `/api/journeys/[id]/leaderboard?period=weekly|monthly&periodStart=` | Ranked list (normalized score %); only users with ≥1 entry | — | `200` `{ rankings[] }` (rank, displayName, scorePercentage, trend, etc.) |
 
-### 2.9 Home / aggregates
+### 2.9 Insights (chart data)
+
+| Method | Path | Description | Request | Response |
+|--------|------|-------------|---------|----------|
+| GET | `/api/journeys/[id]/insights` | Chart data: last 14 days daily score %, per-dimension averages (radar), last 84 days for calendar heatmaps, weighted contribution (stacked bar), weighted gap (achieved vs 100%) | — | `200` `{ dailyScores, dimensionScores, heatmapDailyScores, dailyDimensionScores, stackedBarData: { date, shortDate, totalScore, segments: { dimensionId, name, emoji, contribution }[] }[] }` or `404` |
+
+### 2.10 Home / aggregates
 
 | Method | Path | Description | Request | Response |
 |--------|------|-------------|---------|----------|
