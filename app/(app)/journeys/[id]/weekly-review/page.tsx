@@ -1,31 +1,17 @@
 /**
  * Weekly review screen: GET review for week, done checkbox + notes, PUT on save.
- * Query ?weekStart=YYYY-MM-DD (default: current week Monday).
+ * Uses server data layer (no self-fetch) for Cloudflare.
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
+import { getJourneyDetail } from "@/lib/data/journeys";
 import { weekStartForDate, todayInTimezone } from "@/lib/date-utils";
 import { WeeklyReviewForm } from "@/components/domain/WeeklyReviewForm";
 
 interface PageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ weekStart?: string }>;
-}
-
-async function fetchJourneyName(
-  id: string,
-  cookie: string
-): Promise<string | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.journey?.name ?? null;
 }
 
 export default async function WeeklyReviewPage({
@@ -37,9 +23,9 @@ export default async function WeeklyReviewPage({
   const user = await getSessionUser();
   if (!user) notFound();
 
-  const cookie = await getCookieHeader();
-  const journeyName = await fetchJourneyName(id, cookie);
-  if (!journeyName) notFound();
+  const detail = await getJourneyDetail(id, user.id);
+  if (!detail) notFound();
+  const journeyName = detail.journey.name;
 
   const today = todayInTimezone(user.timezone);
   const weekStart =

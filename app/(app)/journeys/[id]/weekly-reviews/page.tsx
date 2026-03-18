@@ -1,51 +1,27 @@
 /**
- * List past weekly reviews. GET /api/journeys/[id]/weekly-reviews/list. Links to weekly-review?weekStart=.
+ * List past weekly reviews. Uses server data layer (no self-fetch) for Cloudflare.
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
-import type { WeeklyReviewResponse } from "@/lib/types/api";
+import { getSessionUser } from "@/lib/auth/session";
+import { getJourneyDetail } from "@/lib/data/journeys";
+import { getWeeklyReviewsList } from "@/lib/data/weekly-reviews";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-async function fetchJourneyName(
-  id: string,
-  cookie: string
-): Promise<string | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.journey?.name ?? null;
-}
-
-async function fetchReviewsList(
-  journeyId: string,
-  cookie: string
-): Promise<WeeklyReviewResponse[]> {
-  const base = await getBaseUrl();
-  const res = await fetch(
-    `${base}/api/journeys/${journeyId}/weekly-reviews/list?limit=50`,
-    { cache: "no-store", headers: { cookie } }
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.reviews ?? [];
-}
-
 export default async function WeeklyReviewsListPage({ params }: PageProps) {
   const { id } = await params;
-  const cookie = await getCookieHeader();
-  const [journeyName, reviews] = await Promise.all([
-    fetchJourneyName(id, cookie),
-    fetchReviewsList(id, cookie),
+  const user = await getSessionUser();
+  if (!user) notFound();
+
+  const [detail, reviews] = await Promise.all([
+    getJourneyDetail(id, user.id),
+    getWeeklyReviewsList(id, user.id, 50),
   ]);
-  if (!journeyName) notFound();
+  if (!detail) notFound();
+  const journeyName = detail.journey.name;
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">

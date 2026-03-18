@@ -1,34 +1,23 @@
 /**
- * Insights: charts (daily score trend, dimension radar) and leaderboard section.
+ * Insights: charts (daily score trend, dimension radar). Uses server data layer (no self-fetch) for Cloudflare.
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
+import { getSessionUser } from "@/lib/auth/session";
+import { getJourneyDetail } from "@/lib/data/journeys";
 import { InsightsCharts } from "@/components/domain/InsightsCharts";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-async function fetchJourneyName(
-  id: string,
-  cookie: string
-): Promise<string | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.journey?.name ?? null;
-}
-
 export default async function InsightsPage({ params }: PageProps) {
   const { id } = await params;
-  const cookie = await getCookieHeader();
-  const journeyName = await fetchJourneyName(id, cookie);
-  if (!journeyName) notFound();
+  const user = await getSessionUser();
+  if (!user) notFound();
+  const detail = await getJourneyDetail(id, user.id);
+  if (!detail) notFound();
+  const journeyName = detail.journey.name;
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">

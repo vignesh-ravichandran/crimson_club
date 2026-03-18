@@ -1,29 +1,21 @@
 /**
  * Home screen: primary journey, today state, other journeys, pending backfill, pending weekly reviews.
- * Contract: api-contracts §4.8; frontend-design §8.1, §8.2.
+ * Uses server data layer directly (no fetch to own API) so it works on Cloudflare Workers.
  */
 import Link from "next/link";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
-import type { HomeResponse } from "@/lib/types/api";
-
-async function fetchHome(): Promise<HomeResponse | null> {
-  const base = await getBaseUrl();
-  const cookie = await getCookieHeader();
-  const res = await fetch(`${base}/api/home`, { cache: "no-store", headers: { cookie } });
-  if (!res.ok) return null;
-  return res.json();
-}
+import { getSessionUser } from "@/lib/auth/session";
+import { getHomeData } from "@/lib/data/home";
 
 export default async function AppHomePage() {
-  const data = await fetchHome();
-
-  if (!data) {
+  const user = await getSessionUser();
+  if (!user) {
     return (
       <div className="mx-auto max-w-4xl p-4">
-        <p className="text-secondary">Could not load home data.</p>
+        <p className="text-secondary">Not signed in.</p>
       </div>
     );
   }
+  const data = await getHomeData(user);
 
   const {
     primaryJourney,

@@ -25,14 +25,63 @@ Enough for ~5–50 users.
 
 **Where to get production env values (e.g. SESSION_SECRET):** Check the email with subject **“Crimson club env”** in your inbox. That mail holds the env values (or instructions) for production. Set them in Cloudflare via **Workers & Pages → app → Settings → Variables and Secrets**, or with `npx wrangler secret put SESSION_SECRET` (and paste when prompted). Never commit those values.
 
-**If journeys don’t load or create-journey shows a blank page:** Set **APP_URL** (or **NEXT_PUBLIC_APP_URL**) in Cloudflare to your live URL, e.g. `https://app.crimson-club.workers.dev`. The app uses this for server-side API calls so they hit the correct origin. Add it in **Workers & Pages → app → Settings → Variables and Secrets**.
+**APP URL:** The deploy script sets `NEXT_PUBLIC_APP_URL=https://app.crimson-club.workers.dev` during the build so it is inlined into the server bundle (reliable on Cloudflare). To use a different URL, edit the `deploy` script in `package.json` or set that env var when running the build. `wrangler.toml` also has `[vars]` with `APP_URL` as a fallback.
+
+---
+
+## Fix deployment (e.g. after clearing DB)
+
+If you’ve already deployed once and need to fix issues or **recreate tables** (e.g. you cleared the DB), do this order:
+
+1. **Set env/secrets in Cloudflare** (so the Worker has what it needs):
+   - **SESSION_SECRET** — at least 32 characters. Dashboard: Workers & Pages → **app** → Settings → Variables and Secrets → Add **SESSION_SECRET**. Or: `npx wrangler secret put SESSION_SECRET` and paste when prompted.
+   - **APP_URL** — Already in `wrangler.toml` under `[vars]`. Override in Variables and Secrets only if you use a different URL (e.g. custom domain).
+
+2. **Apply D1 migrations** (recreates tables after a cleared DB):
+   ```bash
+   npx wrangler d1 migrations apply crimson-club --remote
+   ```
+
+3. **Deploy** from repo root:
+   ```bash
+   npm run deploy
+   ```
+
+4. **Verify:** Open `https://app.crimson-club.workers.dev`, sign up or sign in, create a journey. If you still see 500 or blank, run `npm run logs` in one terminal, reproduce in the browser, and fix the error shown in the logs.
+
+---
+
+## Fix: “Could not load home data” / journeys empty / 404 on journey sub-pages (server data layer)
+
+On Cloudflare Workers, **server-side `fetch()` to your own app** (e.g. layout fetching `/api/journeys`, home fetching `/api/home`, or a page fetching `/api/journeys/[id]`) can fail (wrong base URL, cookies, or subrequest limits). That caused “Could not load home data”, empty journey lists, and **404 on Log today, Goals, Leaderboard, Lessons, Insights, Weekly review** (those pages fetch journey detail and call `notFound()` when the fetch failed).
+
+**Fix:** Use a **server data layer** instead of self-fetch. The app now has:
+
+- **`lib/data/journeys.ts`** — `getJourneysForUser()`, `getJourneyDetail()`, `getJourneyById()` (join page; no participant check).
+- **`lib/data/home.ts`** — `getHomeData()` (used by home and review pages).
+- **`lib/data/daily.ts`** — `getDailyData()` (today / log-today page).
+- **`lib/data/goals.ts`** — `getGoal()` (goals page).
+- **`lib/data/leaderboard.ts`** — `getLeaderboard()` (leaderboard page).
+- **`lib/data/lessons.ts`** — `getLessons()` (lessons page).
+- **`lib/data/weekly-reviews.ts`** — `getWeeklyReviewsList()` (weekly-reviews list page).
+
+Layout, home, review, journeys list, read-through, journey detail, and journey sub-pages (today, goals, leaderboard, lessons, insights, weekly-review, weekly-reviews, invite, join) **call these functions directly** instead of `fetch(base + '/api/...')`. The same functions are used by the API routes so behavior is unchanged for client or external callers. No self-request, so it works on Workers.
+
+If you add new Server Components that need journey or home data, use the data layer (or add new helpers in `lib/data/`) rather than fetching your own API from the server.
+
+**Learnings (for future changes):**
+
+- **`getJourneyDetail()`** returns `{ journey, dimensions, visibleLabels }`, not a single journey object. In page code, store the result as `detail` (or similar) and use `detail.journey.name`, `detail.journey.visibility`, etc. Using a variable named `journey` for the full return type leads to type errors (e.g. `journey.name` when `journey` is the detail shape).
+- **Today / Log today page:** Define `today = todayInTimezone(user.timezone)` and pass it to both `getDailyData(id, user.id, today)` and `<TodayForm initialDate={today} ... />`. Without a `today` variable, the form has no initial date and the build fails.
+- **Join page:** Use `getJourneyById(id)` for journey name (not `getJourneyDetail`), because the user is not yet a participant. `getJourneyById` does a simple journey lookup with no participant check.
+- **Insights:** The page only needs journey name from the server; chart data is loaded by the client via `fetch('/api/journeys/[id]/insights')`, which works from the browser.
 
 ---
 
 ## Prerequisites
 
 1. **Cloudflare account** — [dash.cloudflare.com](https://dash.cloudflare.com) (free).
-2. **Node.js 18+** (Node 20+ recommended for `wrangler` 4.x) and **npm** on your machine.
+2. **Node.js 20+** and **npm** on your machine. The deploy command (`npm run deploy`) requires Node 20+ (wrangler/opennext dependency). Use `nvm use 20` (or `fnm use 20`) if you have multiple Node versions.
 3. **Code:** The app uses `getDb()` in all API routes; on Cloudflare it uses the D1 binding from `getCloudflareContext().env.DB`, and locally it uses SQLite. No extra code changes needed to deploy.
 
 ---

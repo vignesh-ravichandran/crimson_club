@@ -1,47 +1,20 @@
 /**
- * Read-through: list all journeys with full descriptions and dimensions so you can refresh your thought process.
- * Fetches /api/journeys then /api/journeys/[id] for each to get journey + dimension descriptions.
+ * Read-through: list all journeys with full descriptions and dimensions. Uses server data layer directly (no fetch to own API) so it works on Cloudflare Workers.
  */
 import Link from "next/link";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
-import type { JourneySummary } from "@/lib/types/api";
-import type {
-  JourneyResponse,
-  DimensionResponse,
-  JourneyVisibleLabelsResponse,
-} from "@/lib/types/api";
-
-async function fetchJourneys(): Promise<JourneySummary[]> {
-  const base = await getBaseUrl();
-  const cookie = await getCookieHeader();
-  const res = await fetch(`${base}/api/journeys`, { cache: "no-store", headers: { cookie } });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.journeys ?? [];
-}
-
-async function fetchJourneyDetail(
-  id: string
-): Promise<{
-  journey: JourneyResponse;
-  dimensions: DimensionResponse[];
-  visibleLabels: JourneyVisibleLabelsResponse;
-} | null> {
-  const base = await getBaseUrl();
-  const cookie = await getCookieHeader();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  return res.json();
-}
+import { getSessionUser } from "@/lib/auth/session";
+import { getJourneysForUser, getJourneyDetail } from "@/lib/data/journeys";
 
 export default async function ReadThroughPage() {
-  const journeys = await fetchJourneys();
-  const details = await Promise.all(
-    journeys.map((j) => fetchJourneyDetail(j.id))
-  );
+  const user = await getSessionUser();
+  const journeys = user
+    ? await getJourneysForUser(user.id, user.primaryJourneyId)
+    : [];
+  const details =
+    user &&
+    (await Promise.all(
+      journeys.map((j) => getJourneyDetail(j.id, user.id))
+    ));
 
   return (
     <div className="mx-auto max-w-3xl space-y-8 p-4">
@@ -61,7 +34,7 @@ export default async function ReadThroughPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {details.map((data) => {
+          {(details ?? []).map((data) => {
             if (!data) return null;
             const { journey, dimensions } = data;
             const sortedDims = [...dimensions].sort((a, b) => a.position - b.position);

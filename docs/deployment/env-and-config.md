@@ -22,7 +22,7 @@ On Cloudflare Pages, D1 is attached via project binding; no `DATABASE_URL`. Sess
 
 | Variable / config | Purpose | When needed |
 |-------------------|---------|-------------|
-| **APP_URL** or **NEXT_PUBLIC_APP_URL** | Base URL for server-side API fetch (e.g. `https://app.crimson-club.workers.dev`). Used when request headers don’t give the correct host (e.g. on Cloudflare Workers). | Set in Cloudflare if journeys don’t load or create-journey shows blank. |
+| **APP_URL** or **NEXT_PUBLIC_APP_URL** | Base URL for server-side API fetch (e.g. `https://app.crimson-club.workers.dev`). Used when request headers don’t give the correct host (e.g. on Cloudflare Workers). | Set in `wrangler.toml` under `[vars]`; override in Cloudflare if needed. |
 | **NEXT_PUBLIC_APP_URL** (or similar) | Full app URL for invite links, redirects | If we build invite URLs or redirects that need origin |
 | **LOG_LEVEL** | `debug` \| `info` \| `warn` \| `error` | If we add structured logging and want to tune verbosity |
 

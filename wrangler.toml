@@ -17,6 +17,6 @@ database_name = "crimson-club"
 database_id = "5a54b08b-35a0-4718-af4b-a91b35c62038"
 migrations_dir = "drizzle"
 
-# Local dev secrets: use .dev.vars (gitignored) for SESSION_SECRET etc.
-# [vars]
-# SESSION_SECRET = "set-in-dev-vars"
+# Env vars (injected at runtime). SESSION_SECRET: set via wrangler secret put or dashboard (never commit).
+[vars]
+APP_URL = "https://app.crimson-club.workers.dev"

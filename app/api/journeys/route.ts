@@ -6,15 +6,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import {
   journeys,
-  journeyParticipants,
   journeyVisibleLabels,
   dimensions,
+  journeyParticipants,
 } from "@/lib/db/schema";
-import { eq, and, isNull, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/auth/require-session";
+import { getJourneysForUser } from "@/lib/data/journeys";
 import type {
   ApiError,
-  JourneySummary,
   CreateJourneyBody,
 } from "@/lib/types/api";
 import crypto from "crypto";
@@ -27,59 +27,12 @@ export async function GET(request: NextRequest) {
   const session = await requireSession();
   if ("response" in session) return session.response;
   const { user } = session;
-  const db = getDb();
   const archived = request.nextUrl.searchParams.get("archived") === "true";
-
-  const participants = await db
-    .select({
-      journeyId: journeyParticipants.journeyId,
-      leftAt: journeyParticipants.leftAt,
-    })
-    .from(journeyParticipants)
-    .where(eq(journeyParticipants.userId, user.id));
-
-  const journeyIds = participants
-    .filter((p) => (archived ? p.leftAt != null : p.leftAt == null))
-    .map((p) => p.journeyId);
-
-  if (journeyIds.length === 0) {
-    return NextResponse.json({ journeys: [] });
-  }
-
-  const filtered = await db
-    .select()
-    .from(journeys)
-    .where(inArray(journeys.id, journeyIds));
-
-  const participantCounts = await Promise.all(
-    filtered.map(async (j) => {
-      const rows = await db
-        .select()
-        .from(journeyParticipants)
-        .where(
-          and(
-            eq(journeyParticipants.journeyId, j.id),
-            isNull(journeyParticipants.leftAt)
-          )
-        );
-      return { journeyId: j.id, count: rows.length };
-    })
+  const list = await getJourneysForUser(
+    user.id,
+    user.primaryJourneyId,
+    archived
   );
-  const countMap = Object.fromEntries(
-    participantCounts.map((p) => [p.journeyId, p.count])
-  );
-
-  const list: JourneySummary[] = filtered.map((j) => ({
-    id: j.id,
-    name: j.name,
-    emoji: j.emoji,
-    visibility: j.visibility,
-    startDate: j.startDate,
-    endDate: j.endDate ?? undefined,
-    isPrimary: user.primaryJourneyId === j.id,
-    participantCount: countMap[j.id] ?? 0,
-  }));
-
   return NextResponse.json({ journeys: list });
 }
 

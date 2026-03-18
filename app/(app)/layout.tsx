@@ -1,23 +1,11 @@
 /**
  * App layout: session guard (redirect to sign-in if 401); shell with header, nav, journey selector, user menu.
- * Per docs/lld/frontend-design.md §8.1 and task 04-frontend-auth-shell.
+ * Uses server data layer directly (no fetch to own API) so it works on Cloudflare Workers.
  */
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBaseUrl } from "@/lib/server-request";
+import { getJourneysForUser } from "@/lib/data/journeys";
 import { AppShell } from "@/components/layout/AppShell";
-import type { JourneySummary } from "@/lib/types/api";
-
-async function fetchJourneys(cookieHeader: string): Promise<JourneySummary[]> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys`, {
-    cache: "no-store",
-    headers: { cookie: cookieHeader },
-  });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.journeys ?? [];
-}
 
 export default async function AppLayout({
   children,
@@ -27,13 +15,7 @@ export default async function AppLayout({
   const user = await getSessionUser();
   if (!user) redirect("/sign-in");
 
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c) => `${c.name}=${c.value}`)
-    .join("; ");
-  const journeys = await fetchJourneys(cookieHeader);
+  const journeys = await getJourneysForUser(user.id, user.primaryJourneyId);
 
   return (
     <AppShell

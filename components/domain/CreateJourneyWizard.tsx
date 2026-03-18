@@ -24,10 +24,6 @@ interface DimensionDraft {
   emoji: string;
   weight: string;
   isMandatory: boolean;
-  whyMatters: string;
-  whatGoodLooksLike: string;
-  howHelpsJourney: string;
-  strengthGuidance: string;
 }
 
 function todayISO(): string {
@@ -54,9 +50,9 @@ export function CreateJourneyWizard() {
 
   // Step 2: Dimensions (min 2, max 8; weights sum 100)
   const [dimensions, setDimensions] = useState<DimensionDraft[]>([
-    { name: "", description: "", emoji: "•", weight: "34", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" },
-    { name: "", description: "", emoji: "•", weight: "33", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" },
-    { name: "", description: "", emoji: "•", weight: "33", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" },
+    { name: "", description: "", emoji: "•", weight: "34", isMandatory: false },
+    { name: "", description: "", emoji: "•", weight: "33", isMandatory: false },
+    { name: "", description: "", emoji: "•", weight: "33", isMandatory: false },
   ]);
 
   // Step 3: Visible labels
@@ -67,7 +63,7 @@ export function CreateJourneyWizard() {
 
   function addDimension() {
     if (dimensions.length >= 8) return;
-    setDimensions((d) => [...d, { name: "", description: "", emoji: "•", weight: "0", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" }]);
+    setDimensions((d) => [...d, { name: "", description: "", emoji: "•", weight: "0", isMandatory: false }]);
   }
 
   function removeDimension(i: number) {
@@ -98,10 +94,6 @@ export function CreateJourneyWizard() {
         emoji: (d.emoji || "•").trim(),
         weight: parseFloat(d.weight) || 0,
         isMandatory: !!d.isMandatory,
-        whyMatters: (d.whyMatters ?? "").trim() || undefined,
-        whatGoodLooksLike: (d.whatGoodLooksLike ?? "").trim() || undefined,
-        howHelpsJourney: (d.howHelpsJourney ?? "").trim() || undefined,
-        strengthGuidance: (d.strengthGuidance ?? "").trim() || undefined,
       }));
     if (dims.length < 2 || dims.length > 8) return null;
     const sum = dims.reduce((s, d) => s + d.weight, 0);
@@ -414,49 +406,6 @@ export function CreateJourneyWizard() {
                 />
                 <span className="text-sm text-secondary">Mandatory</span>
               </label>
-              <div className="mt-3 rounded border border-border-default bg-subtle/50 p-3 space-y-2">
-                <span className="text-xs font-medium text-tertiary">Purpose (optional)</span>
-                <div>
-                  <label className="block text-xs text-secondary">Why it matters</label>
-                  <input
-                    type="text"
-                    value={d.whyMatters}
-                    onChange={(e) => updateDimension(i, "whyMatters", e.target.value)}
-                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
-                    placeholder="Short line"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-secondary">Good looks like</label>
-                  <input
-                    type="text"
-                    value={d.whatGoodLooksLike}
-                    onChange={(e) => updateDimension(i, "whatGoodLooksLike", e.target.value)}
-                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
-                    placeholder="Short line"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-secondary">How it helps this journey</label>
-                  <input
-                    type="text"
-                    value={d.howHelpsJourney}
-                    onChange={(e) => updateDimension(i, "howHelpsJourney", e.target.value)}
-                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
-                    placeholder="Short line"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-secondary">Strength guidance</label>
-                  <input
-                    type="text"
-                    value={d.strengthGuidance}
-                    onChange={(e) => updateDimension(i, "strengthGuidance", e.target.value)}
-                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
-                    placeholder="Short line"
-                  />
-                </div>
-              </div>
             </div>
           ))}
           {dimensions.length < 8 && (

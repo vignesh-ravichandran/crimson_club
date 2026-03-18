@@ -1,44 +1,20 @@
 /**
- * Journey detail: GET /api/journeys/[id]. Dimensions, visible labels, actions (Log today, Review, Invite, etc.).
+ * Journey detail: dimensions, visible labels, actions. Uses server data layer directly (no fetch to own API) so it works on Cloudflare Workers.
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
-import type {
-  JourneyResponse,
-  DimensionResponse,
-  JourneyVisibleLabelsResponse,
-} from "@/lib/types/api";
+import { getJourneyDetail } from "@/lib/data/journeys";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-async function fetchJourneyDetail(
-  id: string,
-  cookie: string
-): Promise<{
-  journey: JourneyResponse;
-  dimensions: DimensionResponse[];
-  visibleLabels: JourneyVisibleLabelsResponse;
-} | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  return res.json();
-}
-
 export default async function JourneyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const [user, cookie] = await Promise.all([
-    getSessionUser(),
-    getCookieHeader(),
-  ]);
-  const data = await fetchJourneyDetail(id, cookie);
+  const user = await getSessionUser();
+  if (!user) notFound();
+  const data = await getJourneyDetail(id, user.id);
 
   if (!data) notFound();
 

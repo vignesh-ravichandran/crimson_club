@@ -1,29 +1,14 @@
 /**
- * Join journey by invite link: ?token=... . Requires auth; POST /api/journeys/[id]/join with inviteToken; redirect to journey.
+ * Join journey by invite link: ?token=... . Uses server data layer for journey name (no self-fetch) on Cloudflare.
  */
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
+import { getJourneyById } from "@/lib/data/journeys";
 import { JoinJourneyForm } from "@/components/domain/JoinJourneyForm";
 
 interface PageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ token?: string }>;
-}
-
-async function fetchJourneyName(
-  id: string,
-  cookie: string
-): Promise<string | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.journey?.name ?? null;
 }
 
 export default async function JoinJourneyPage({
@@ -51,8 +36,8 @@ export default async function JoinJourneyPage({
     );
   }
 
-  const cookie = await getCookieHeader();
-  const journeyName = await fetchJourneyName(id, cookie);
+  const journey = await getJourneyById(id);
+  const journeyName = journey?.name ?? "This journey";
 
   if (!token?.trim()) {
     return (
@@ -71,7 +56,7 @@ export default async function JoinJourneyPage({
       <h1 className="text-xl font-semibold text-primary">Join journey</h1>
       <JoinJourneyForm
         journeyId={id}
-        journeyName={journeyName ?? "This journey"}
+        journeyName={journeyName}
         inviteToken={token}
       />
     </div>

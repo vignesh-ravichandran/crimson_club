@@ -1,21 +1,15 @@
 /**
- * Journeys list: GET /api/journeys, cards with link to journey detail. Contract: api-contracts §4.2.
+ * Journeys list. Uses server data layer directly (no fetch to own API) so it works on Cloudflare Workers.
  */
 import Link from "next/link";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
-import type { JourneySummary } from "@/lib/types/api";
-
-async function fetchJourneys(): Promise<JourneySummary[]> {
-  const base = await getBaseUrl();
-  const cookie = await getCookieHeader();
-  const res = await fetch(`${base}/api/journeys`, { cache: "no-store", headers: { cookie } });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return data.journeys ?? [];
-}
+import { getSessionUser } from "@/lib/auth/session";
+import { getJourneysForUser } from "@/lib/data/journeys";
 
 export default async function JourneysListPage() {
-  const journeys = await fetchJourneys();
+  const user = await getSessionUser();
+  const journeys = user
+    ? await getJourneysForUser(user.id, user.primaryJourneyId)
+    : [];
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 p-4">

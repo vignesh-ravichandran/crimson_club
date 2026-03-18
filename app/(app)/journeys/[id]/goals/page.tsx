@@ -1,50 +1,20 @@
 /**
- * Goals screen: weekly and monthly goal. GET goals, create (POST), set outcome (PATCH). 7-day edit rule.
+ * Goals screen: weekly and monthly goal. Uses server data layer (no fetch to own API) so it works on Cloudflare.
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
+import { getJourneyDetail } from "@/lib/data/journeys";
+import { getGoal } from "@/lib/data/goals";
 import {
   getCurrentWeekPeriod,
   getCurrentMonthPeriod,
   isWithinOutcomeEditWindow,
 } from "@/lib/date-utils";
 import { GoalsForm } from "@/components/domain/GoalsForm";
-import type { GoalResponse } from "@/lib/types/api";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-async function fetchJourneyName(
-  id: string,
-  cookie: string
-): Promise<string | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.journey?.name ?? null;
-}
-
-async function fetchGoal(
-  journeyId: string,
-  goalType: "weekly" | "monthly",
-  periodStart: string,
-  cookie: string
-): Promise<GoalResponse | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(
-    `${base}/api/journeys/${journeyId}/goals?goalType=${goalType}&periodStart=${periodStart}`,
-    { cache: "no-store", headers: { cookie } }
-  );
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.goal ?? null;
 }
 
 export default async function GoalsPage({ params }: PageProps) {
@@ -52,17 +22,15 @@ export default async function GoalsPage({ params }: PageProps) {
   const user = await getSessionUser();
   if (!user) notFound();
 
-  const cookie = await getCookieHeader();
-  const journeyName = await fetchJourneyName(id, cookie);
-  if (!journeyName) notFound();
-
   const week = getCurrentWeekPeriod(user.timezone);
   const month = getCurrentMonthPeriod(user.timezone);
-
-  const [weeklyGoal, monthlyGoal] = await Promise.all([
-    fetchGoal(id, "weekly", week.periodStart, cookie),
-    fetchGoal(id, "monthly", month.periodStart, cookie),
+  const [journeyData, weeklyGoal, monthlyGoal] = await Promise.all([
+    getJourneyDetail(id, user.id),
+    getGoal(id, user.id, "weekly", week.periodStart),
+    getGoal(id, user.id, "monthly", month.periodStart),
   ]);
+  if (!journeyData) notFound();
+  const journeyName = journeyData.journey.name;
 
   const canEditWeeklyOutcome =
     weeklyGoal != null &&

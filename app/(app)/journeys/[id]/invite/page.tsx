@@ -1,34 +1,14 @@
 /**
- * Create invite for private journey (creator only). POST /api/journeys/[id]/invite; show inviteUrl.
+ * Create invite for private journey (creator only). Uses server data layer (no self-fetch) for Cloudflare.
  */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionUser } from "@/lib/auth/session";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
+import { getJourneyDetail } from "@/lib/data/journeys";
 import { InviteForm } from "@/components/domain/InviteForm";
 
 interface PageProps {
   params: Promise<{ id: string }>;
-}
-
-async function fetchJourney(
-  id: string,
-  cookie: string
-): Promise<{ name: string; visibility: string; creatorId: string } | null> {
-  const base = await getBaseUrl();
-  const res = await fetch(`${base}/api/journeys/${id}`, {
-    cache: "no-store",
-    headers: { cookie },
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  const j = data.journey;
-  if (!j) return null;
-  return {
-    name: j.name,
-    visibility: j.visibility,
-    creatorId: j.creatorId,
-  };
 }
 
 export default async function InvitePage({ params }: PageProps) {
@@ -36,9 +16,9 @@ export default async function InvitePage({ params }: PageProps) {
   const user = await getSessionUser();
   if (!user) notFound();
 
-  const cookie = await getCookieHeader();
-  const journey = await fetchJourney(id, cookie);
-  if (!journey) notFound();
+  const detail = await getJourneyDetail(id, user.id);
+  if (!detail) notFound();
+  const journey = detail.journey;
   if (journey.visibility !== "private") {
     return (
       <div className="mx-auto max-w-md space-y-4 p-4">

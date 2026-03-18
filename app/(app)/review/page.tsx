@@ -1,29 +1,22 @@
 /**
  * Review tab: pending weekly reviews (from home), link to journeys.
+ * Uses server data layer directly (no fetch to own API) so it works on Cloudflare Workers.
  */
 import Link from "next/link";
-import { getBaseUrl, getCookieHeader } from "@/lib/server-request";
-import type { HomeResponse } from "@/lib/types/api";
-
-async function fetchHome(): Promise<HomeResponse | null> {
-  const base = await getBaseUrl();
-  const cookie = await getCookieHeader();
-  const res = await fetch(`${base}/api/home`, { cache: "no-store", headers: { cookie } });
-  if (!res.ok) return null;
-  return res.json();
-}
+import { getSessionUser } from "@/lib/auth/session";
+import { getHomeData } from "@/lib/data/home";
 
 export default async function ReviewPage() {
-  const data = await fetchHome();
-
-  if (!data) {
+  const user = await getSessionUser();
+  if (!user) {
     return (
       <div className="mx-auto max-w-4xl p-4">
         <h1 className="text-xl font-semibold text-primary">Review</h1>
-        <p className="mt-2 text-secondary">Could not load review data.</p>
+        <p className="mt-2 text-secondary">Not signed in.</p>
       </div>
     );
   }
+  const data = await getHomeData(user);
 
   const { pendingWeeklyReviews } = data;
 
