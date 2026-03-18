@@ -25,6 +25,8 @@ Enough for ~5–50 users.
 
 **Where to get production env values (e.g. SESSION_SECRET):** Check the email with subject **“Crimson club env”** in your inbox. That mail holds the env values (or instructions) for production. Set them in Cloudflare via **Workers & Pages → app → Settings → Variables and Secrets**, or with `npx wrangler secret put SESSION_SECRET` (and paste when prompted). Never commit those values.
 
+**If journeys don’t load or create-journey shows a blank page:** Set **APP_URL** (or **NEXT_PUBLIC_APP_URL**) in Cloudflare to your live URL, e.g. `https://app.crimson-club.workers.dev`. The app uses this for server-side API calls so they hit the correct origin. Add it in **Workers & Pages → app → Settings → Variables and Secrets**.
+
 ---
 
 ## Prerequisites

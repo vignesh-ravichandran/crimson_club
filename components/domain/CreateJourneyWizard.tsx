@@ -6,7 +6,6 @@
  */
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { CreateJourneyBody } from "@/lib/types/api";
 
 const DEFAULT_VISIBLE_LABELS = {
@@ -21,9 +20,14 @@ type Step = 1 | 2 | 3 | 4;
 
 interface DimensionDraft {
   name: string;
+  description: string;
   emoji: string;
   weight: string;
   isMandatory: boolean;
+  whyMatters: string;
+  whatGoodLooksLike: string;
+  howHelpsJourney: string;
+  strengthGuidance: string;
 }
 
 function todayISO(): string {
@@ -31,24 +35,28 @@ function todayISO(): string {
 }
 
 export function CreateJourneyWizard() {
-  const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Step 1: Basics
+  // Step 1: Basics + purpose
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [emoji, setEmoji] = useState("📌");
   const [startDate, setStartDate] = useState(todayISO());
   const [endDate, setEndDate] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [whyExists, setWhyExists] = useState("");
+  const [successVision, setSuccessVision] = useState("");
+  const [whatMattersMost, setWhatMattersMost] = useState("");
+  const [whatShouldNotDistract, setWhatShouldNotDistract] = useState("");
+  const [strengthsToPlayTo, setStrengthsToPlayTo] = useState("");
 
   // Step 2: Dimensions (min 2, max 8; weights sum 100)
   const [dimensions, setDimensions] = useState<DimensionDraft[]>([
-    { name: "", emoji: "•", weight: "34", isMandatory: false },
-    { name: "", emoji: "•", weight: "33", isMandatory: false },
-    { name: "", emoji: "•", weight: "33", isMandatory: false },
+    { name: "", description: "", emoji: "•", weight: "34", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" },
+    { name: "", description: "", emoji: "•", weight: "33", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" },
+    { name: "", description: "", emoji: "•", weight: "33", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" },
   ]);
 
   // Step 3: Visible labels
@@ -59,7 +67,7 @@ export function CreateJourneyWizard() {
 
   function addDimension() {
     if (dimensions.length >= 8) return;
-    setDimensions((d) => [...d, { name: "", emoji: "•", weight: "0", isMandatory: false }]);
+    setDimensions((d) => [...d, { name: "", description: "", emoji: "•", weight: "0", isMandatory: false, whyMatters: "", whatGoodLooksLike: "", howHelpsJourney: "", strengthGuidance: "" }]);
   }
 
   function removeDimension(i: number) {
@@ -86,9 +94,14 @@ export function CreateJourneyWizard() {
       .filter((d) => d.name.trim())
       .map((d) => ({
         name: d.name.trim(),
+        description: (d.description ?? "").trim() || undefined,
         emoji: (d.emoji || "•").trim(),
         weight: parseFloat(d.weight) || 0,
         isMandatory: !!d.isMandatory,
+        whyMatters: (d.whyMatters ?? "").trim() || undefined,
+        whatGoodLooksLike: (d.whatGoodLooksLike ?? "").trim() || undefined,
+        howHelpsJourney: (d.howHelpsJourney ?? "").trim() || undefined,
+        strengthGuidance: (d.strengthGuidance ?? "").trim() || undefined,
       }));
     if (dims.length < 2 || dims.length > 8) return null;
     const sum = dims.reduce((s, d) => s + d.weight, 0);
@@ -100,6 +113,11 @@ export function CreateJourneyWizard() {
       visibility,
       startDate: startDate || todayISO(),
       endDate: endDate.trim() || undefined,
+      whyExists: whyExists.trim() || undefined,
+      successVision: successVision.trim() || undefined,
+      whatMattersMost: whatMattersMost.trim() || undefined,
+      whatShouldNotDistract: whatShouldNotDistract.trim() || undefined,
+      strengthsToPlayTo: strengthsToPlayTo.trim() || undefined,
       dimensions: dims,
       visibleLabels,
     };
@@ -137,8 +155,12 @@ export function CreateJourneyWizard() {
           // Journey created; invite optional — still redirect
         }
       }
-      if (id) router.push(`/journeys/${id}`);
-      else router.push("/journeys");
+      if (id) {
+        // Full navigation so layout refetches journeys and new journey is visible (avoids blank/stale on deploy).
+        window.location.href = `/journeys/${id}`;
+      } else {
+        setError("Journey was created but no ID returned. Go to Journeys to open it.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -248,6 +270,59 @@ export function CreateJourneyWizard() {
               </label>
             </div>
           </div>
+          <div className="rounded border border-border-default bg-subtle p-4 space-y-3">
+            <h3 className="text-sm font-medium text-tertiary">Purpose (optional) — revisit on Read through</h3>
+            <div>
+              <label className="block text-xs text-secondary">Why this journey exists</label>
+              <textarea
+                value={whyExists}
+                onChange={(e) => setWhyExists(e.target.value)}
+                rows={2}
+                className="mt-0.5 w-full rounded border border-border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                placeholder="e.g. To feel strong and consistent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-secondary">Success looks like</label>
+              <textarea
+                value={successVision}
+                onChange={(e) => setSuccessVision(e.target.value)}
+                rows={2}
+                className="mt-0.5 w-full rounded border border-border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                placeholder="e.g. 4+ days movement, no guilt on rest days"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-secondary">What matters most</label>
+              <textarea
+                value={whatMattersMost}
+                onChange={(e) => setWhatMattersMost(e.target.value)}
+                rows={2}
+                className="mt-0.5 w-full rounded border border-border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                placeholder="e.g. Consistency over intensity"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-secondary">What should not distract</label>
+              <textarea
+                value={whatShouldNotDistract}
+                onChange={(e) => setWhatShouldNotDistract(e.target.value)}
+                rows={2}
+                className="mt-0.5 w-full rounded border border-border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                placeholder="e.g. Comparing to others, all-or-nothing thinking"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-secondary">Strengths to play to</label>
+              <textarea
+                value={strengthsToPlayTo}
+                onChange={(e) => setStrengthsToPlayTo(e.target.value)}
+                rows={2}
+                className="mt-0.5 w-full rounded border border-border-default bg-surface px-3 py-2 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                placeholder="e.g. I stick to things when I track them"
+              />
+            </div>
+          </div>
           <div className="flex justify-end">
             <button
               type="button"
@@ -287,17 +362,27 @@ export function CreateJourneyWizard() {
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-[1fr_auto_80px] gap-2 items-end">
-                <div>
-                  <label className="block text-xs text-secondary">Name</label>
-                  <input
-                    type="text"
-                    value={d.name}
-                    onChange={(e) => updateDimension(i, "name", e.target.value)}
-                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-primary focus:border-brand-crimson focus:outline-none"
-                    placeholder="e.g. Movement"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs text-secondary">Name</label>
+                <input
+                  type="text"
+                  value={d.name}
+                  onChange={(e) => updateDimension(i, "name", e.target.value)}
+                  className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-primary focus:border-brand-crimson focus:outline-none"
+                  placeholder="e.g. Movement"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-secondary">Description (optional)</label>
+                <textarea
+                  value={d.description}
+                  onChange={(e) => updateDimension(i, "description", e.target.value)}
+                  rows={2}
+                  className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-primary focus:border-brand-crimson focus:outline-none"
+                  placeholder="What this dimension means to you"
+                />
+              </div>
+              <div className="grid grid-cols-[auto_80px] gap-2 items-end">
                 <div>
                   <label className="block text-xs text-secondary">Emoji</label>
                   <input
@@ -329,6 +414,49 @@ export function CreateJourneyWizard() {
                 />
                 <span className="text-sm text-secondary">Mandatory</span>
               </label>
+              <div className="mt-3 rounded border border-border-default bg-subtle/50 p-3 space-y-2">
+                <span className="text-xs font-medium text-tertiary">Purpose (optional)</span>
+                <div>
+                  <label className="block text-xs text-secondary">Why it matters</label>
+                  <input
+                    type="text"
+                    value={d.whyMatters}
+                    onChange={(e) => updateDimension(i, "whyMatters", e.target.value)}
+                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                    placeholder="Short line"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-secondary">Good looks like</label>
+                  <input
+                    type="text"
+                    value={d.whatGoodLooksLike}
+                    onChange={(e) => updateDimension(i, "whatGoodLooksLike", e.target.value)}
+                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                    placeholder="Short line"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-secondary">How it helps this journey</label>
+                  <input
+                    type="text"
+                    value={d.howHelpsJourney}
+                    onChange={(e) => updateDimension(i, "howHelpsJourney", e.target.value)}
+                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                    placeholder="Short line"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-secondary">Strength guidance</label>
+                  <input
+                    type="text"
+                    value={d.strengthGuidance}
+                    onChange={(e) => updateDimension(i, "strengthGuidance", e.target.value)}
+                    className="mt-0.5 w-full rounded border border-border-default bg-surface px-2 py-1.5 text-sm text-primary focus:border-brand-crimson focus:outline-none"
+                    placeholder="Short line"
+                  />
+                </div>
+              </div>
             </div>
           ))}
           {dimensions.length < 8 && (

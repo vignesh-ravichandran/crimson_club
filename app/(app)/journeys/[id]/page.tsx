@@ -63,6 +63,20 @@ export default async function JourneyDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {(journey.whyExists ?? journey.successVision ?? journey.whatMattersMost ?? journey.whatShouldNotDistract ?? journey.strengthsToPlayTo) && (
+        <section className="rounded-lg border border-border-default bg-subtle p-4">
+          <h2 className="text-sm font-medium text-tertiary">Purpose</h2>
+          <div className="mt-2 space-y-1 text-sm text-secondary">
+            {journey.whyExists && <p><span className="font-medium text-tertiary">Why it exists:</span> {journey.whyExists}</p>}
+            {journey.successVision && <p><span className="font-medium text-tertiary">Success looks like:</span> {journey.successVision}</p>}
+            {journey.whatMattersMost && <p><span className="font-medium text-tertiary">What matters most:</span> {journey.whatMattersMost}</p>}
+            {journey.whatShouldNotDistract && <p><span className="font-medium text-tertiary">What should not distract:</span> {journey.whatShouldNotDistract}</p>}
+            {journey.strengthsToPlayTo && <p><span className="font-medium text-tertiary">Strengths to play to:</span> {journey.strengthsToPlayTo}</p>}
+          </div>
+          <Link href="/read-through" className="mt-3 inline-block text-xs text-brand-crimson hover:underline">Read through all journeys →</Link>
+        </section>
+      )}
+
       {/* Primary actions */}
       <div className="flex flex-wrap gap-3">
         <Link
@@ -131,6 +145,17 @@ export default async function JourneyDetailPage({ params }: PageProps) {
                   {" "}· weight {d.weight}
                   {d.isMandatory ? " · mandatory" : ""}
                 </span>
+                {d.description && (
+                  <p className="mt-2 text-sm text-secondary">{d.description}</p>
+                )}
+                {(d.whyMatters ?? d.whatGoodLooksLike ?? d.howHelpsJourney ?? d.strengthGuidance) && (
+                  <div className="mt-2 space-y-0.5 text-xs text-tertiary">
+                    {d.whyMatters && <p><span className="font-medium">Why it matters:</span> {d.whyMatters}</p>}
+                    {d.whatGoodLooksLike && <p><span className="font-medium">Good looks like:</span> {d.whatGoodLooksLike}</p>}
+                    {d.howHelpsJourney && <p><span className="font-medium">How it helps:</span> {d.howHelpsJourney}</p>}
+                    {d.strengthGuidance && <p><span className="font-medium">Strength guidance:</span> {d.strengthGuidance}</p>}
+                  </div>
+                )}
               </li>
             ))}
         </ul>
