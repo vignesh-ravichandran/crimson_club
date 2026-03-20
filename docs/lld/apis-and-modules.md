@@ -98,7 +98,7 @@ Base: Next.js API routes under e.g. `/api` (or App Router route handlers). All m
 
 | Method | Path | Description | Request | Response |
 |--------|------|-------------|---------|----------|
-| GET | `/api/journeys/[id]/insights` | Chart data: last 14 days daily score %, per-dimension averages (radar), last 84 days for calendar heatmaps, weighted contribution (stacked bar), weighted gap (achieved vs 100%) | — | `200` `{ dailyScores, dimensionScores, heatmapDailyScores, dailyDimensionScores, stackedBarData: { date, shortDate, totalScore, segments: { dimensionId, name, emoji, contribution }[] }[] }` or `404` |
+| GET | `/api/journeys/[id]/insights` | Chart data: last 14 days **daily total %** (sum of weight×factor; **can be negative** for missed-mandatory penalty), per-dimension **mean factor×100** (−50…100), radar/heatmap/bar use same factors as [db/data-model.md](../db/data-model.md) §1; weighted contribution stacked bar (signed stacks); last 84 days heatmaps | — | `200` `{ dailyScores, dimensionScores: { dimensionId, name, emoji, averageFactor, scorePercentage }[], heatmapDailyScores, dailyDimensionScores, stackedBarData }` or `404` |
 
 ### 2.10 Home / aggregates
 

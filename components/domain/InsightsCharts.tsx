@@ -22,6 +22,7 @@ import {
   PolarRadiusAxis,
   Radar,
   Legend,
+  Cell,
 } from "recharts";
 import { CalendarHeatmap } from "./CalendarHeatmap";
 
@@ -37,7 +38,7 @@ const DIMENSION_COLORS = [
   "#4A1620",
   "#3D1219",
 ];
-const GAP_FILL = "#E7E1DA";
+const GAP_AXIS_NEGATIVE = "#A63A4B";
 
 interface DailyScore {
   date: string;
@@ -48,7 +49,9 @@ interface DimensionScore {
   dimensionId: string;
   name: string;
   emoji: string;
-  averageScale: number;
+  /** Mean score factor per logged day (−0.5 … 1); same basis as PRD scoring. */
+  averageFactor: number;
+  /** `averageFactor` × 100 (−50 … 100). */
   scorePercentage: number;
 }
 
@@ -148,9 +151,10 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
     ...d,
     shortDate: d.date.slice(5),
   }));
+  /** Map −50…100% to 0…100 for polar radius (same scale for all dimensions). */
   const radarData = (insights?.dimensionScores ?? []).map((d) => ({
     subject: `${d.emoji} ${d.name}`,
-    score: d.scorePercentage,
+    score: ((d.scorePercentage + 50) / 150) * 100,
     fullMark: 100,
   }));
 
@@ -159,17 +163,29 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
     ...Object.fromEntries(row.segments.map((s) => [s.dimensionId, s.contribution])),
   }));
   const gapChartData = (insights?.dimensionScores ?? []).map((d) => ({
+    dimensionId: d.dimensionId,
     name: `${d.emoji} ${d.name}`,
-    achieved: d.scorePercentage,
-    gap: Math.max(0, 100 - d.scorePercentage),
+    scorePercentage: d.scorePercentage,
   }));
+
+  const dailyScoresList = dailyData.map((d) => d.scorePercentage);
+  const lineYDomain: [number, number] =
+    dailyScoresList.length > 0
+      ? [
+          Math.floor(Math.min(...dailyScoresList, 0) - 5),
+          Math.ceil(Math.max(...dailyScoresList, 100) + 5),
+        ]
+      : [0, 100];
 
   return (
     <div className="space-y-6">
       {/* Daily score trend */}
       <section className="rounded-lg border border-border-default bg-surface p-4">
         <h2 className="text-sm font-medium text-primary">Daily score (last 14 days)</h2>
-        <p className="text-xs text-secondary mt-0.5">Your score % per day.</p>
+        <p className="text-xs text-secondary mt-0.5">
+          Sum of weight × score factor per day (max 100%). Negative days include missed-mandatory penalty
+          (−0.5 factor).
+        </p>
         {dailyData.length === 0 ? (
           <p className="mt-4 text-secondary text-sm">No daily entries yet. Log days to see your trend.</p>
         ) : (
@@ -178,7 +194,7 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
               <LineChart data={dailyData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E7E1DA" />
                 <XAxis dataKey="shortDate" tick={{ fontSize: 11, fill: "#5F5A55" }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#5F5A55" }} />
+                <YAxis domain={lineYDomain} tick={{ fontSize: 11, fill: "#5F5A55" }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#fff", border: "1px solid #E7E1DA" }}
                   formatter={(value) => [typeof value === "number" ? `${value}%` : "—", "Score"]}
@@ -207,10 +223,14 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
         ) : (
           <div className="h-64 mt-3">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stackedBarRows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <BarChart
+                data={stackedBarRows}
+                stackOffset="sign"
+                margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#E7E1DA" />
                 <XAxis dataKey="shortDate" tick={{ fontSize: 11, fill: "#5F5A55" }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#5F5A55" }} />
+                <YAxis domain={["auto", "auto"]} tick={{ fontSize: 11, fill: "#5F5A55" }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#fff", border: "1px solid #E7E1DA" }}
                   formatter={(value) => [typeof value === "number" ? `${Number(value).toFixed(1)}` : "—", ""]}
@@ -232,10 +252,13 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
         )}
       </section>
 
-      {/* Weighted gap chart */}
+      {/* Average score vs max (per dimension) */}
       <section className="rounded-lg border border-border-default bg-surface p-4">
-        <h2 className="text-sm font-medium text-primary">Weighted gap</h2>
-        <p className="text-xs text-secondary mt-0.5">Achieved vs gap to 100% per dimension (average over period).</p>
+        <h2 className="text-sm font-medium text-primary">Average vs max (per dimension)</h2>
+        <p className="text-xs text-secondary mt-0.5">
+          Mean score factor × 100% over days logged (−50% = missed mandatory, 0% = missed optional, 100%
+          = excellent). Same basis as leaderboard.
+        </p>
         {gapChartData.length === 0 ? (
           <p className="mt-4 text-secondary text-sm">No dimension data yet.</p>
         ) : (
@@ -247,15 +270,28 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
                 margin={{ top: 8, right: 24, left: 80, bottom: 8 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#E7E1DA" horizontal={false} />
-                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: "#5F5A55" }} unit="%" />
+                <XAxis
+                  type="number"
+                  domain={[-50, 100]}
+                  tick={{ fontSize: 11, fill: "#5F5A55" }}
+                  unit="%"
+                />
                 <YAxis type="category" dataKey="name" width={72} tick={{ fontSize: 11, fill: "#171717" }} />
                 <Tooltip
                   contentStyle={{ backgroundColor: "#fff", border: "1px solid #E7E1DA" }}
-                  formatter={(value) => [typeof value === "number" ? `${Number(value).toFixed(1)}%` : "—", ""]}
+                  formatter={(value) => [
+                    typeof value === "number" ? `${Number(value).toFixed(1)}%` : "—",
+                    "Avg vs max",
+                  ]}
                 />
-                <Legend />
-                <Bar dataKey="achieved" name="Achieved" stackId="gap" fill={CHART_CRIMSON} />
-                <Bar dataKey="gap" name="Gap to 100%" stackId="gap" fill={GAP_FILL} />
+                <Bar dataKey="scorePercentage" name="Avg vs max" radius={[0, 4, 4, 0]}>
+                  {gapChartData.map((e) => (
+                    <Cell
+                      key={e.dimensionId}
+                      fill={e.scorePercentage < 0 ? GAP_AXIS_NEGATIVE : CHART_CRIMSON}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -265,7 +301,7 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
       {/* Calendar heatmap — whole journey */}
       <CalendarHeatmap
         title="Calendar heatmap (whole journey)"
-        subtitle="Last 12 weeks. Score % per day."
+        subtitle="Last 12 weeks. Daily total % (can go negative if penalties outweigh positives)."
         data={insights?.heatmapDailyScores ?? []}
         emptyMessage="No daily entries in this period."
       />
@@ -274,12 +310,14 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
       {(insights?.dimensionScores ?? []).length > 0 && (
         <div className="space-y-4">
           <h2 className="text-sm font-medium text-primary">Calendar heatmap by dimension</h2>
-          <p className="text-xs text-secondary -mt-2">Score % per dimension per day (last 12 weeks).</p>
+          <p className="text-xs text-secondary -mt-2">
+            Score factor × 100% for that dimension (−50%…100%; red = missed mandatory).
+          </p>
           {(insights?.dimensionScores ?? []).map((dim) => (
             <CalendarHeatmap
               key={dim.dimensionId}
               title={`${dim.emoji} ${dim.name}`}
-              subtitle={`Dimension score 0–100%`}
+              subtitle="Factor × 100% vs max for this dimension"
               data={insights?.dailyDimensionScores?.[dim.dimensionId] ?? []}
               emptyMessage={`No ${dim.name} entries in this period.`}
             />
@@ -290,7 +328,10 @@ export function InsightsCharts({ journeyId, journeyName }: InsightsChartsProps) 
       {/* Dimension radar */}
       <section className="rounded-lg border border-border-default bg-surface p-4">
         <h2 className="text-sm font-medium text-primary">Dimension balance</h2>
-        <p className="text-xs text-secondary mt-0.5">Average score per dimension (0–100).</p>
+        <p className="text-xs text-secondary mt-0.5">
+          Radar uses a 0–100 mapping from −50%…100% (penalty to excellent) so all dimensions fit the same
+          radius.
+        </p>
         {radarData.length === 0 ? (
           <p className="mt-4 text-secondary text-sm">No dimension data yet.</p>
         ) : (

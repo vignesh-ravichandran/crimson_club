@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * Today screen form: dimension chips (scale 2–5), reflection note, save. 7-day date picker.
+ * Today screen form: dimension chips (full journey label set: Missed + Low–Excellent),
+ * reflection note, save. 7-day date picker.
  */
 import { useState, useEffect, useCallback } from "react";
 import type {
@@ -22,16 +23,29 @@ interface TodayFormProps {
   timezone: string;
 }
 
+/** Canonical scales shown after Missed (one chip maps to 0 or 1 by mandatory flag). */
 const SCALE_LEVELS = [2, 3, 4, 5] as const;
 
 function getLabel(scale: number, labels: JourneyVisibleLabelsResponse): string {
   switch (scale) {
-    case 2: return labels.labelLow;
-    case 3: return labels.labelMedium;
-    case 4: return labels.labelHigh;
-    case 5: return labels.labelExcellent;
-    default: return "—";
+    case 0:
+    case 1:
+      return labels.labelMissed;
+    case 2:
+      return labels.labelLow;
+    case 3:
+      return labels.labelMedium;
+    case 4:
+      return labels.labelHigh;
+    case 5:
+      return labels.labelExcellent;
+    default:
+      return "—";
   }
+}
+
+function missedCanonicalForDimension(isMandatory: number): 0 | 1 {
+  return isMandatory ? 1 : 0;
 }
 
 export function TodayForm({
@@ -179,31 +193,49 @@ export function TodayForm({
         <p className="text-secondary">Loading...</p>
       ) : (
         <>
-          {sortedDimensions.map((dim) => (
-            <div key={dim.id} className="rounded-lg border border-border-default bg-surface p-4">
-              <p className="font-medium text-primary">
-                {dim.emoji} {dim.name}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {SCALE_LEVELS.map((scale) => (
+          {sortedDimensions.map((dim) => {
+            const current = values[dim.id] ?? 2;
+            const missedSelected = current === 0 || current === 1;
+            const chipClass = (selected: boolean) =>
+              `min-h-[44px] rounded-lg border px-4 py-2 text-sm ${
+                selected
+                  ? "border-border-crimson bg-crimsonSubtle text-brand-crimsonDeep"
+                  : "border-border-default bg-surface text-secondary hover:border-border-crimson"
+              }`;
+            return (
+              <div key={dim.id} className="rounded-lg border border-border-default bg-surface p-4">
+                <p className="font-medium text-primary">
+                  {dim.emoji} {dim.name}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
                   <button
-                    key={scale}
                     type="button"
                     onClick={() =>
-                      setValues((prev) => ({ ...prev, [dim.id]: scale }))
+                      setValues((prev) => ({
+                        ...prev,
+                        [dim.id]: missedCanonicalForDimension(dim.isMandatory),
+                      }))
                     }
-                    className={`min-h-[44px] rounded-lg border px-4 py-2 text-sm ${
-                      (values[dim.id] ?? 2) === scale
-                        ? "border-border-crimson bg-crimsonSubtle text-brand-crimsonDeep"
-                        : "border-border-default bg-surface text-secondary hover:border-border-crimson"
-                    }`}
+                    className={chipClass(missedSelected)}
                   >
-                    {getLabel(scale, visibleLabels)}
+                    {visibleLabels.labelMissed}
                   </button>
-                ))}
+                  {SCALE_LEVELS.map((scale) => (
+                    <button
+                      key={scale}
+                      type="button"
+                      onClick={() =>
+                        setValues((prev) => ({ ...prev, [dim.id]: scale }))
+                      }
+                      className={chipClass(current === scale)}
+                    >
+                      {getLabel(scale, visibleLabels)}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           <div>
             <label htmlFor="reflection" className="block text-sm font-medium text-primary">

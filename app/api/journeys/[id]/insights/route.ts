@@ -1,5 +1,6 @@
 /**
  * GET /api/journeys/[id]/insights — chart data for Insights: daily scores (14d), dimension averages (radar), heatmap (84d).
+ * All score math uses scoreFactorForCanonicalScale (missed mandatory = −0.5; missed optional = 0); daily % is not clamped at 0.
  */
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
@@ -64,9 +65,10 @@ export async function GET(
     )
     .orderBy(dailyEntries.date);
 
-  const dimensionSums: Record<string, { sum: number; count: number }> = {};
+  /** Sum of score factors per dimension (see scoreFactorForCanonicalScale: only 1 is negative). */
+  const dimensionFactorSums: Record<string, { sum: number; count: number }> = {};
   journeyDims.forEach((d) => {
-    dimensionSums[d.id] = { sum: 0, count: 0 };
+    dimensionFactorSums[d.id] = { sum: 0, count: 0 };
   });
 
   const heatmapScoreByDate: Record<string, number> = {};
@@ -114,13 +116,14 @@ export async function GET(
       const contrib = dim.weight * factor;
       dayScoreEarned += contrib;
       contributions[v.dimensionId] = Math.round(contrib * 10) / 10;
-      dimensionSums[v.dimensionId].sum += v.canonicalScale;
-      dimensionSums[v.dimensionId].count += 1;
-      const pct = Math.round((v.canonicalScale / 5) * 1000) / 10;
-      dimScores[v.dimensionId] = Math.max(0, Math.min(100, pct));
+      dimensionFactorSums[v.dimensionId].sum += factor;
+      dimensionFactorSums[v.dimensionId].count += 1;
+      // Per-dimension heatmap: performance vs max for that day = factor × 100 (−50 … 100; matches PRD factors).
+      const factorPct = Math.round(factor * 1000) / 10;
+      dimScores[v.dimensionId] = factorPct;
     }
-    const raw = (dayScoreEarned / 100) * 100;
-    const scorePercentage = Math.round(Math.max(0, Math.min(100, raw)) * 10) / 10;
+    // Daily total: sum(weight × factor); weights sum to 100 → same units as leaderboard % (can be negative).
+    const scorePercentage = Math.round(dayScoreEarned * 10) / 10;
     heatmapScoreByDate[entry.date] = scorePercentage;
     if (heatmapDimByDate[entry.date]) {
       journeyDims.forEach((dim) => {
@@ -166,14 +169,14 @@ export async function GET(
   });
 
   const dimensionScores = journeyDims.map((d) => {
-    const { sum, count } = dimensionSums[d.id];
-    const averageScale = count > 0 ? sum / count : 0;
-    const scorePercentage = Math.round((averageScale / 5) * 1000) / 10;
+    const { sum, count } = dimensionFactorSums[d.id];
+    const averageFactor = count > 0 ? sum / count : 0;
+    const scorePercentage = Math.round(averageFactor * 1000) / 10;
     return {
       dimensionId: d.id,
       name: d.name,
       emoji: d.emoji,
-      averageScale: Math.round(averageScale * 10) / 10,
+      averageFactor: Math.round(averageFactor * 1000) / 1000,
       scorePercentage,
     };
   });

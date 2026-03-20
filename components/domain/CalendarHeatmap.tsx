@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * Calendar heatmap: grid of days (Mon–Sun columns, weeks as rows). Color intensity 0–100%.
- * Used for whole-journey and per-dimension activity in Insights.
+ * Calendar heatmap: grid of days (Mon–Sun columns, weeks as rows).
+ * Values are score % (whole journey: daily total −100…100; per dimension: factor×100, −50…100).
+ * Negative values (missed mandatory penalty) use a distinct fill.
  */
 function getWeekday(dateStr: string): number {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -21,7 +22,8 @@ function addDays(dateStr: string, n: number): string {
 }
 
 function intensityToBg(value: number): string {
-  if (value <= 0) return "bg-subtle";
+  if (value < 0) return "bg-semantic-danger/45";
+  if (value === 0) return "bg-subtle";
   if (value <= 25) return "bg-brand-crimson/25";
   if (value <= 50) return "bg-brand-crimson/50";
   if (value <= 75) return "bg-brand-crimson/75";
@@ -98,7 +100,11 @@ export function CalendarHeatmap({ title, subtitle, data, emptyMessage }: Calenda
           </div>
         </div>
       </div>
-      <div className="mt-2 flex items-center justify-end gap-2 text-[10px] text-tertiary">
+      <div className="mt-2 flex flex-wrap items-center justify-end gap-2 text-[10px] text-tertiary">
+        <span className="flex items-center gap-1">
+          <span className="h-2.5 w-3 rounded-sm bg-semantic-danger/45" title="Penalty" /> Penalty
+        </span>
+        <span>·</span>
         <span>Less</span>
         <span className="flex gap-0.5">
           {[0, 25, 50, 75, 100].map((v) => (

@@ -66,7 +66,7 @@ Implement Home screen (primary journey, today state, other journeys, pending bac
 - **Home:** `(app)/page.tsx` — fetches GET /api/home; shows primary journey card (link + Log today), today state, other journeys list, pending backfill count, pending weekly reviews. Empty states when no primary / no data. Uses design tokens (bg-surface, border-border-default, brand-crimson, etc.).
 - **Journeys list:** `(app)/journeys/page.tsx` — fetches GET /api/journeys; cards with name, emoji, visibility, participant count; link to detail and to Create journey (/journeys/new placeholder).
 - **Journey detail:** `(app)/journeys/[id]/page.tsx` — fetches GET /api/journeys/[id]; name, description, dimensions (read-only), visible labels; actions: Log today, Weekly review, Goals, Leaderboard, Lessons (links).
-- **Today screen:** `(app)/journeys/[id]/today/page.tsx` — server fetches journey + daily for today (user TZ); client `TodayForm` (dimension chips 2–5, reflection textarea, date picker for 7-day window, Save). PUT /api/journeys/[id]/daily on save; 7-day rule message; errors shown.
+- **Today screen:** `(app)/journeys/[id]/today/page.tsx` — server fetches journey + daily for today (user TZ); client `TodayForm` (dimension chips: Missed + Low–Excellent / canonical 0–5, reflection textarea, date picker for 7-day window, Save). PUT /api/journeys/[id]/daily on save; 7-day rule message; errors shown.
 - **Manual test:** Home API returns 200 with otherJourneys; home/journeys/today routes build and run.
 
 _Last updated: 2025-03-14_
