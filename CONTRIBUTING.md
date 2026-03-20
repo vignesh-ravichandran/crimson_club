@@ -6,11 +6,13 @@ This doc is the **single source of truth** for how to work in this repo — whet
 
 ## 1. Repo layout (monorepo)
 
-- **`docs/`** — **Reference** documentation: product, design, HLD, LLD, DB design, deployment (where we're deployed, branch→env, what to update). Start at [docs/README.md](docs/README.md).
-- **`plans/`** — **Current state**: work planning and status so we stay tracked and don't miss anything. **Current** work is in [plans/CURRENT.md](plans/CURRENT.md); full list in [plans/INDEX.md](plans/INDEX.md).
-- **`plans/README.md`** — How plans work and how tools should use CURRENT vs INDEX.
+- **`docs/`** — **Reference** documentation (required). **Single entry:** [docs/README.md](docs/README.md) → each area **INDEX** → files. Update on every relevant **code or design** change.
+- **`plans/`** — **Work tracking**: what’s active, what’s next, history. [plans/CURRENT.md](plans/CURRENT.md) (active), [plans/INDEX.md](plans/INDEX.md) (all), [plans/README.md](plans/README.md) (how to use).
+- **`input/`** — Task-only files/assets ([input/README.md](input/README.md)). **Gitignored** except that README — do not commit drops here.
+- **Environment** — Real `.env` files are **never** committed. **One** sample file: [`.env.example`](.env.example) — extend it for new vars; do **not** add multiple sample env files (e.g. `.env.sample`, `.env.local.example`).
+- **`docs/reuse/REPO-DOCS-AND-PLANS-SCAFFOLD.md`** — Portable **single file** for other repos ([scaffold](docs/reuse/REPO-DOCS-AND-PLANS-SCAFFOLD.md)).
 
-Use **docs** for our reference (what we're building, where things run). Use **plans** for current state and step-by-step progress.
+Use **docs** for reference (what we're building, where things run). Use **plans** for current work, next steps, and status.
 
 ---
 
@@ -49,16 +51,16 @@ Use **docs** for our reference (what we're building, where things run). Use **pl
 
 ---
 
-## 4. Coding style and consistency
+## 4. Coding conventions (documented and enforced)
 
-- **Language/framework** — Follow the style of the part of the monorepo you’re in (e.g. app-specific lint/format config). If the repo adds a root style guide later, it will live here or under `docs/` and be linked from this section.
-- **Naming** — Use the conventions in each area (e.g. `docs/` and `plans/` READMEs). For code, prefer existing patterns in the codebase.
-- **Comments** — Explain “why” and edge cases; avoid restating the code.
-- **Commits** — Prefer clear, scoped messages; reference plan or doc when relevant (e.g. “Implement habit streak (plans/2025-03-14-feature-habit-streaks)”).
+- **Index:** [docs/contributing/INDEX.md](docs/contributing/INDEX.md) — frontend, backend, testing (add more files as needed).
+- **Rules:** Conventions used in the app must live under **`docs/contributing/`** and be **followed** across the codebase. When you introduce a new pattern, **document it** in the right file the same time.
+- **Naming & comments** — Prefer existing patterns; explain “why” and edge cases.
+- **Commits** — Clear, scoped messages; reference plan or doc when relevant.
 
-**Frontend vs backend:** For area-specific conventions and checklists, see [docs/contributing/](docs/contributing/): [frontend](docs/contributing/frontend.md) (components, pages, hooks, styling) and [backend](docs/contributing/backend.md) (API routes, auth, DB, errors). Both align with the design and contract docs in `docs/lld/` and `docs/db/`.
+**Area docs:** [frontend](docs/contributing/frontend.md), [backend](docs/contributing/backend.md), [testing](docs/contributing/testing.md) — align with `docs/design/`, `docs/lld/`, `docs/db/`.
 
-When we add a formal style guide (e.g. ESLint/Prettier config, language-specific rules), we’ll document it under `docs/` and reference it here so consistency is enforced.
+**Implementation hygiene:** When you **replace** or **refactor** behavior, **remove obsolete code** in the same change (unused modules, old routes, duplicate helpers) unless a plan explicitly defers removal.
 
 ---
 
@@ -72,21 +74,22 @@ When we add a formal style guide (e.g. ESLint/Prettier config, language-specific
 
 ## 6. Using this from any tool
 
-- **Cursor / AI:** Prefer `plans/CURRENT.md` and its linked plan file for “current status” and “next steps.” Don’t reopen plans marked Completed in `plans/INDEX.md` unless the user asks. When creating a plan, update INDEX and CURRENT.
-- **Other IDEs / scripts:** Same idea: read `plans/CURRENT.md` for active work; use `plans/INDEX.md` to see all plans and avoid treating completed ones as current. Use `docs/README.md` as the entry point for all documentation.
+- **Cursor / AI:** Read **`plans/CURRENT.md`** first (active work and next steps). Navigate docs via **`docs/README.md`** → area **INDEX**. Don’t reopen plans marked **Completed** in `plans/INDEX.md` unless the user asks. When creating a plan, update INDEX and CURRENT.
+- **Other IDEs / scripts:** Same: `plans/CURRENT.md` for active work; `docs/README.md` as the **single doc entry** for all reference documentation.
 - **Humans:** Before starting work, check CURRENT; when finishing, update INDEX and CURRENT so the next person (or tool) sees the right state.
 
 ---
 
 ## 7. Single source of truth
 
-- **Reference (product, design, tech stack, HLD, LLD, DB design, deployment, services/accounts)** → `docs/` (indexed in docs/README.md). **Mandate:** every change reflected in docs; no work may deviate from docs without updating them — see docs/DOCS-MANDATE.md.
-- **Current work and status** → `plans/CURRENT.md` and the plan file it links to.
+- **Reference** → `docs/` — entry [docs/README.md](docs/README.md); **mandate** [docs/DOCS-MANDATE.md](docs/DOCS-MANDATE.md).
+- **Conventions** → [docs/contributing/INDEX.md](docs/contributing/INDEX.md).
+- **Current work / next steps** → `plans/CURRENT.md` and linked plan file.
 - **All plans** → `plans/INDEX.md`.
-- **How to contribute** → This file (CONTRIBUTING.md).
+- **This file** → CONTRIBUTING.md.
 
 Keeping these updated is how we enforce consistency and make the repo indexable and reliable for everyone.
 
 ---
 
-_Last updated: 2025-03-14_
+_Last updated: 2026-03-20_

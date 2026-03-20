@@ -1,10 +1,9 @@
 # Contributing (by area)
 
-Area-specific conventions and checklists. The main [CONTRIBUTING.md](../../CONTRIBUTING.md) at repo root covers docs, plans, and global rules.
+See **[INDEX.md](INDEX.md)** for the canonical list of convention documents (frontend, backend, testing).
 
-| Doc | For |
-|-----|-----|
-| [frontend.md](frontend.md) | UI, components, pages, hooks, styling, state — follow when changing or adding frontend code |
-| [backend.md](backend.md) | API routes, auth, DB, validation, errors — follow when changing or adding backend code |
+The main [CONTRIBUTING.md](../../CONTRIBUTING.md) at repo root covers docs, plans, env, input, and global rules.
 
-Both point to the same design and contract docs (lld, db, deployment); use these as the contribution checklist for each area.
+---
+
+_Last updated: 2026-03-20_

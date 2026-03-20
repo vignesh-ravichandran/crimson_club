@@ -6,9 +6,10 @@
 
 ## 1. Every change must be reflected in docs
 
-- If **anything** we build or run changes — product, design, tech stack, HLD, LLD, DB design, deployment, or which services/accounts we use — the relevant doc **must** be updated **in the same change** (same PR or immediately after).
+- **Any code or design change** that affects behavior, UX, APIs, architecture, data, or deployment — the relevant doc under **`docs/`** **must** be updated **in the same change** (same PR or immediately after).
+- Product, design, tech stack, HLD, LLD, DB design, deployment, and **services/accounts** must stay accurate.
 - **Never** merge or ship a change that affects our reference without updating the doc. Consider doc update part of "done."
-- If you're unsure which doc to update, check [docs/README.md](README.md). If none fits, add a new doc or section and link it from the index.
+- If you're unsure which doc to update, check [docs/README.md](README.md) and the area **INDEX**. If none fits, add a new doc or section and link it from the index.
 
 ---
 
@@ -20,15 +21,22 @@
 
 ---
 
-## 3. Summary
+## 3. Implementation cleanup
+
+- When you **replace or refactor** implementation, **remove obsolete code** in the same effort (old modules, dead exports, duplicate API paths) unless a plan explicitly tracks deferred removal.
+
+---
+
+## 4. Summary
 
 | Rule | Meaning |
 |------|--------|
-| **Docs updated every time** | Any change to product, design, tech, DB, deployment, or services/accounts → update the right doc. Never missed. |
-| **No deviation without capture** | No work should diverge from docs without that divergence being captured in the docs. Code and deployment follow docs; docs are updated when we change direction. |
+| **Docs updated every time** | Code/design change → update the right doc under `docs/`. Never missed. |
+| **No deviation without capture** | Code and deployment follow docs; docs change when direction changes. |
+| **Clean up** | Old implementation code removed when replacing behavior. |
 
 This is enforced by [CONTRIBUTING.md](../CONTRIBUTING.md) and the Cursor rule. When in doubt: update the doc.
 
 ---
 
-_Last updated: 2025-03-14_
+_Last updated: 2026-03-20_

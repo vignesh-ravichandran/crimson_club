@@ -1,13 +1,29 @@
 ---
-description: Use docs and plans as single source of truth; docs must be updated on every change; respect CURRENT and INDEX
+description: Docs/plans single source of truth; docs on every change; plans/input/env/conventions/dead-code cleanup
 alwaysApply: true
 ---
 
-# Docs & plans (single source of truth)
+# Docs, plans & repo rules (single source of truth)
 
-- **Current work:** Read `plans/CURRENT.md` first to know what we're doing. Use the plan file it links to for steps and status. Do not reopen or continue plans marked **Completed** in `plans/INDEX.md` unless the user explicitly asks.
-- **Documentation:** Reference docs live under `docs/`: product, user-journey, design, **tech-stack**, HLD, LLD, DB design (design only; no migrations), deployment (where deployed, branch→env, **services and accounts per env**, what to update). Entry point: `docs/README.md`. See **docs/DOCS-MANDATE.md** for the docs mandate.
-- **Docs mandate (enforced):** (1) **Every change must be reflected in docs** — whenever product, design, tech stack, HLD, LLD, DB design, or deployment (including services/accounts) changes, update the relevant doc in the same change; never merge/ship without updating the doc when it applies. (2) **No work may deviate from docs without updating docs** — do not implement or deploy something that contradicts or goes beyond the docs without updating the docs so they remain the single source of truth. Never leave docs out of date.
-- **New plans:** When creating a plan, add it to `plans/INDEX.md` and set it in `plans/CURRENT.md`. Use step checkboxes (`- [ ]` / `- [x]`), keep Status and Last updated at the top of the plan file.
-- **Input (file-based):** Raw files the user wants consumed for a task live in `input/`. When the user refers to "files I added", "what's in input", or task input that needs files, read from `input/`. Use them to create or update docs/plans/code; don't use `input/` as the long-term source of truth — output goes in docs, plans, or codebase.
-- **Contributing:** Follow `CONTRIBUTING.md` for when to update docs/plans and for coding style. When making code or deployment changes, always update the relevant doc in the same flow.
+## Plans (`plans/`)
+- Read **`plans/CURRENT.md`** first for active work and next steps; follow the linked plan file. Do not reopen **Completed** plans in **`plans/INDEX.md`** unless the user explicitly asks.
+- New work: add/update plan file, **`plans/INDEX.md`**, and **`plans/CURRENT.md`**. Use `- [ ]` / `- [x]` checkboxes; keep Status and Last updated at top of plan files.
+
+## Docs (`docs/`)
+- **`docs/`** is mandatory for reference documentation. **Entry:** **`docs/README.md`** → each area **`INDEX.md`** → specific files.
+- **Every** code or design change that affects product, UX, contracts, architecture, data, or deployment must update **`docs/`** in the **same change**. See **`docs/DOCS-MANDATE.md`**.
+
+## Input (`input/`)
+- Task files/assets may live under **`input/`** — read when the user points there. Contents are **gitignored** except **`input/README.md`**. Never use `input/` as long-term truth; merge into docs/plans/code.
+
+## Environment
+- Never commit real secrets. Only **one** sample env file: **`.env.example`**. Do not add multiple sample env files; extend `.env.example` for new variables.
+
+## Implementation hygiene
+- When replacing or refactoring implementation, **remove obsolete code** in the same flow (no dead duplicate modules/APIs left behind without an explicit tracked follow-up).
+
+## Conventions
+- Follow root **`CONTRIBUTING.md`** and **`docs/contributing/INDEX.md`** (frontend, backend, testing). Document new conventions when you introduce them.
+
+## Contributing
+- Follow **`CONTRIBUTING.md`** for docs/plans updates alongside code.

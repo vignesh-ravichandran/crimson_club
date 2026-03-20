@@ -12,7 +12,7 @@ dist/
 build/
 .turbo/
 
-# Environment and secrets (never commit)
+# Environment and secrets — never commit real env files. Single sample only: .env.example
 .env
 .env.*
 !.env.example
@@ -21,7 +21,7 @@ build/
 # Cloudflare / Wrangler
 .wrangler/
 
-# Input folder: ignore all contents; keep only README so folder is documented
+# Input — task files/assets (gitignored); only README is tracked
 input/*
 !input/README.md
 

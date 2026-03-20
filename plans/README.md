@@ -1,6 +1,6 @@
 # Plans — Single Source of Truth for Work & Status
 
-This folder is the **single source of truth** for what we're building, what's in progress, and what's done. All tools (Cursor, other IDEs, scripts) should use it the same way.
+This folder is the **single source of truth** for **current work**, **next steps**, **what’s coming**, and **completed** initiatives. All tools (Cursor, other IDEs, scripts) should use it the same way.
 
 ---
 
